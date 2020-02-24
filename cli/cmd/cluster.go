@@ -49,7 +49,7 @@ func newCmdCluster() *cobra.Command {
 		Args:  cobra.NoArgs,
 	}
 
-	createCredentalsCommand := &cobra.Command{
+	createCredentialsCommand := &cobra.Command{
 		Use:   "create-credentials",
 		Short: "Create the necessary credentials for service mirroring",
 		Args:  cobra.NoArgs,
@@ -207,11 +207,11 @@ func newCmdCluster() *cobra.Command {
 	getCredentialsCmd.Flags().StringVar(&getOpts.namespace, "service-account-namespace", defaultServiceAccountNs, "the namespace in which the service account will be created")
 	getCredentialsCmd.Flags().StringVar(&getOpts.clusterName, "cluster-name", defaultClusterName, "cluster name")
 
-	createCredentalsCommand.Flags().StringVar(&createOpts.serviceAccount, "service-account-name", defaultServiceAccountName, "the name of the service account used")
-	createCredentalsCommand.Flags().StringVar(&createOpts.namespace, "service-account-namespace", defaultServiceAccountNs, "the namespace in which the service account can be found")
+	createCredentialsCommand.Flags().StringVar(&createOpts.serviceAccount, "service-account-name", defaultServiceAccountName, "the name of the service account used")
+	createCredentialsCommand.Flags().StringVar(&createOpts.namespace, "service-account-namespace", defaultServiceAccountNs, "the namespace in which the service account can be found")
 
 	clusterCmd.AddCommand(getCredentialsCmd)
-	clusterCmd.AddCommand(createCredentalsCommand)
+	clusterCmd.AddCommand(createCredentialsCommand)
 
 	return clusterCmd
 }
