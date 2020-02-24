@@ -18,17 +18,25 @@ import (
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-const tokenKey = "token"
+const (
+	tokenKey                  = "token"
+	defaultServiceAccountName = "linkerd-mirror"
+	defaultServiceAccountNs   = "default"
+	defaultClusterName        = "remote"
+)
 
-type getCredentialsOptions struct {
-	namespace      string
-	serviceAccount string
-	clusterName    string
-}
+type (
+	getCredentialsOptions struct {
+		namespace      string
+		serviceAccount string
+		clusterName    string
+	}
 
-type createOptions struct {
-	serviceAccount string
-}
+	createOptions struct {
+		namespace      string
+		serviceAccount string
+	}
+)
 
 func newCmdCluster() *cobra.Command {
 
@@ -42,9 +50,9 @@ func newCmdCluster() *cobra.Command {
 	}
 
 	createCredentalsCommand := &cobra.Command{
-		Use: "create-credentials", Short: "Create the necessary credentialsfor service mirroring",
-
-		Args: cobra.NoArgs,
+		Use:   "create-credentials",
+		Short: "Create the necessary credentials for service mirroring",
+		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			labels := map[string]string{
@@ -53,7 +61,7 @@ func newCmdCluster() *cobra.Command {
 			}
 
 			clusterRole := v1.ClusterRole{
-				ObjectMeta: metav1.ObjectMeta{Name: createOpts.serviceAccount, Namespace: controlPlaneNamespace, Labels: labels},
+				ObjectMeta: metav1.ObjectMeta{Name: createOpts.serviceAccount, Namespace: createOpts.namespace, Labels: labels},
 				TypeMeta:   metav1.TypeMeta{Kind: "ClusterRole", APIVersion: "rbac.authorization.k8s.io/v1"},
 				Rules: []rbacv1.PolicyRule{
 					{
@@ -65,16 +73,16 @@ func newCmdCluster() *cobra.Command {
 			}
 
 			svcAccount := corev1.ServiceAccount{
-				ObjectMeta: metav1.ObjectMeta{Name: createOpts.serviceAccount, Namespace: controlPlaneNamespace, Labels: labels},
+				ObjectMeta: metav1.ObjectMeta{Name: createOpts.serviceAccount, Namespace: createOpts.namespace, Labels: labels},
 				TypeMeta:   metav1.TypeMeta{Kind: v1.ServiceAccountKind, APIVersion: "v1"},
 			}
 
 			clusterRoleBinding := v1.ClusterRoleBinding{
 				TypeMeta:   metav1.TypeMeta{Kind: "ClusterRoleBinding", APIVersion: "rbac.authorization.k8s.io/v1"},
-				ObjectMeta: metav1.ObjectMeta{Name: createOpts.serviceAccount, Namespace: controlPlaneNamespace, Labels: labels},
+				ObjectMeta: metav1.ObjectMeta{Name: createOpts.serviceAccount, Namespace: createOpts.namespace, Labels: labels},
 
 				Subjects: []v1.Subject{
-					v1.Subject{Kind: v1.ServiceAccountKind, Name: createOpts.serviceAccount, Namespace: controlPlaneNamespace},
+					v1.Subject{Kind: v1.ServiceAccountKind, Name: createOpts.serviceAccount, Namespace: createOpts.namespace},
 				},
 				RoleRef: rbacv1.RoleRef{Kind: "ClusterRole", APIGroup: "rbac.authorization.k8s.io", Name: createOpts.serviceAccount},
 			}
@@ -175,8 +183,7 @@ func newCmdCluster() *cobra.Command {
 				Type:     k8s.MirrorSecretType,
 				TypeMeta: metav1.TypeMeta{Kind: "Secret", APIVersion: "v1"},
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      fmt.Sprintf("cluster-credentials-%s", getOpts.clusterName),
-					Namespace: controlPlaneNamespace,
+					Name: fmt.Sprintf("cluster-credentials-%s", getOpts.clusterName),
 					Annotations: map[string]string{
 						k8s.RemoteClusterNameLabel: getOpts.clusterName,
 					},
@@ -196,10 +203,12 @@ func newCmdCluster() *cobra.Command {
 		},
 	}
 
-	getCredentialsCmd.Flags().StringVar(&getOpts.serviceAccount, "service-account", "linkerd-mirror", "service account")
-	getCredentialsCmd.Flags().StringVarP(&getOpts.namespace, "namespace", "n", "linkerd", "service account namespace")
-	getCredentialsCmd.Flags().StringVar(&getOpts.clusterName, "cluster-name", "remote", "cluster name")
-	createCredentalsCommand.Flags().StringVar(&createOpts.serviceAccount, "service-account", "linkerd-mirror", "the name of the service account used")
+	getCredentialsCmd.Flags().StringVar(&getOpts.serviceAccount, "service-account-name", defaultServiceAccountName, "the name of the service account")
+	getCredentialsCmd.Flags().StringVar(&getOpts.namespace, "service-account-namespace", defaultServiceAccountNs, "the namespace in which the service account will be created")
+	getCredentialsCmd.Flags().StringVar(&getOpts.clusterName, "cluster-name", defaultClusterName, "cluster name")
+
+	createCredentalsCommand.Flags().StringVar(&createOpts.serviceAccount, "service-account-name", defaultServiceAccountName, "the name of the service account used")
+	createCredentalsCommand.Flags().StringVar(&createOpts.namespace, "service-account-namespace", defaultServiceAccountNs, "the namespace in which the service account can be found")
 
 	clusterCmd.AddCommand(getCredentialsCmd)
 	clusterCmd.AddCommand(createCredentalsCommand)
