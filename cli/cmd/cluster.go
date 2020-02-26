@@ -27,9 +27,9 @@ const (
 
 type (
 	getCredentialsOptions struct {
-		namespace      string
-		serviceAccount string
-		clusterName    string
+		namespace           string
+		serviceAccount      string
+		clusterName         string
 		remoteClusterDomain string
 	}
 
@@ -45,15 +45,17 @@ func newCmdCluster() *cobra.Command {
 	createOpts := createOptions{}
 
 	clusterCmd := &cobra.Command{
-		Use:   "cluster manages the multicluster  setup for Linkerd",
-		Short: "cluster manages the multicluster  setup for Linkerd",
-		Args:  cobra.NoArgs,
+		Hidden: true,
+		Use:    "cluster manages the multicluster  setup for Linkerd",
+		Short:  "cluster manages the multicluster  setup for Linkerd",
+		Args:   cobra.NoArgs,
 	}
 
 	createCredentialsCommand := &cobra.Command{
-		Use:   "create-credentials",
-		Short: "Create the necessary credentials for service mirroring",
-		Args:  cobra.NoArgs,
+		Hidden: true,
+		Use:    "create-credentials",
+		Short:  "Create the necessary credentials for service mirroring",
+		Args:   cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			labels := map[string]string{
@@ -107,9 +109,10 @@ func newCmdCluster() *cobra.Command {
 	}
 
 	getCredentialsCmd := &cobra.Command{
-		Use:   "get-credentials",
-		Short: "Get cluster credentials as a secret",
-		Args:  cobra.NoArgs,
+		Hidden: true,
+		Use:    "get-credentials",
+		Short:  "Get cluster credentials as a secret",
+		Args:   cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			rules := clientcmd.NewDefaultClientConfigLoadingRules()
 			rules.ExplicitPath = kubeconfigPath
@@ -186,7 +189,7 @@ func newCmdCluster() *cobra.Command {
 				ObjectMeta: metav1.ObjectMeta{
 					Name: fmt.Sprintf("cluster-credentials-%s", getOpts.clusterName),
 					Annotations: map[string]string{
-						k8s.RemoteClusterNameLabel: getOpts.clusterName,
+						k8s.RemoteClusterNameLabel:        getOpts.clusterName,
 						k8s.RemoteClusterDomainAnnotation: getOpts.remoteClusterDomain,
 					},
 				},
