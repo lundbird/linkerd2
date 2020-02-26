@@ -30,6 +30,7 @@ type (
 		namespace      string
 		serviceAccount string
 		clusterName    string
+		remoteClusterDomain string
 	}
 
 	createOptions struct {
@@ -186,6 +187,7 @@ func newCmdCluster() *cobra.Command {
 					Name: fmt.Sprintf("cluster-credentials-%s", getOpts.clusterName),
 					Annotations: map[string]string{
 						k8s.RemoteClusterNameLabel: getOpts.clusterName,
+						k8s.RemoteClusterDomainAnnotation: getOpts.remoteClusterDomain,
 					},
 				},
 				Data: map[string][]byte{
@@ -206,6 +208,7 @@ func newCmdCluster() *cobra.Command {
 	getCredentialsCmd.Flags().StringVar(&getOpts.serviceAccount, "service-account-name", defaultServiceAccountName, "the name of the service account")
 	getCredentialsCmd.Flags().StringVar(&getOpts.namespace, "service-account-namespace", defaultServiceAccountNs, "the namespace in which the service account will be created")
 	getCredentialsCmd.Flags().StringVar(&getOpts.clusterName, "cluster-name", defaultClusterName, "cluster name")
+	getCredentialsCmd.Flags().StringVar(&getOpts.remoteClusterDomain, "remote-cluster-domain", defaultClusterDomain, "custom remote cluster domain")
 
 	createCredentialsCommand.Flags().StringVar(&createOpts.serviceAccount, "service-account-name", defaultServiceAccountName, "the name of the service account used")
 	createCredentialsCommand.Flags().StringVar(&createOpts.namespace, "service-account-namespace", defaultServiceAccountNs, "the namespace in which the service account can be found")
